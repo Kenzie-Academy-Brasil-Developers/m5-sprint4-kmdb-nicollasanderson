@@ -1,14 +1,22 @@
-from django.shortcuts import render
+from functools import partial
+from django.shortcuts import get_object_or_404, render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from user import serializers
+
 from .serializers import MovieSerializer
 from .models import Movie
 
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from .permissions import MoviePermission
 # Create your views here.
 
 class MovieView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [MoviePermission]
+
     def get(self, request):
         movies = Movie.objects.all()
 
@@ -35,3 +43,18 @@ class SingleMovieView(APIView):
         serializer = MovieSerializer(movie)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self,request, movie_id):
+        movie = get_object_or_404(Movie, id=movie_id)
+
+        serializer = MovieSerializer(movie, request.data, partial=True)
+
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response(serializer.data)
+
+    def delete(self, request, movie_id):
+        get_object_or_404(Movie, id=movie_id).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
