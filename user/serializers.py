@@ -16,7 +16,7 @@ class UserSerializer(serializers.Serializer):
         email = User.objects.filter(email=validated_data['email'])
         
         if email:
-            raise serializers.ValidationError('email already exists')
+            raise serializers.ValidationError({"email":["email already exists"]})
 
         validated_data['updated_at'] = timezone.now()
         validated_data['username'] = validated_data['email']

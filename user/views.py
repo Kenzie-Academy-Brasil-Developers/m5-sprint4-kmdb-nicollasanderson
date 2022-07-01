@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.pagination import PageNumberPagination
 
 from .models import User
 from .serializers import LoginSerializer, UserSerializer
@@ -22,16 +23,18 @@ class CreateUserView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class GetAllUsersView(APIView):
+class GetAllUsersView(APIView, PageNumberPagination):
     authentication_classes = [TokenAuthentication]
     permission_classes = [UserPermission]
 
     def get(self,request):
         users = User.objects.all()
 
-        serializer = UserSerializer(users, many=True)
+        result_page = self.paginate_queryset(users, request, view=self)
 
-        return Response(serializer.data)
+        serializer = UserSerializer(result_page, many=True)
+
+        return self.get_paginated_response(serializer.data)
 
 class GetOneUserView(APIView):
     authentication_classes = [TokenAuthentication]
@@ -46,21 +49,3 @@ class GetOneUserView(APIView):
         serializer = UserSerializer(user, many=True)
 
         return Response(serializer.data)
-
-class LoginView(APIView):
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        user = authenticate(
-            username=serializer.validated_data['username'],
-            password=serializer.validated_data['password']
-        )
-
-        if user:
-
-            token, _ = Token.objects.get_or_create(user=user)
-
-            return Response({'token': token.key})
-
-        return Response({"detail":"invalid username or password"}, status=status.HTTP_401_UNAUTHORIZED)

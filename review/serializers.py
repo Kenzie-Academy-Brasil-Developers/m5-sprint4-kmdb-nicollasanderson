@@ -21,8 +21,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = ['id','critic','stars','review','spoilers','recomendation','movie_id']
 
     def validate_stars(self, stars):
-        if stars < 0:
-            raise serializers.ValidationError("Ensure this value is less than or equal to 10.")
+        if stars < 1:
+            raise serializers.ValidationError("Ensure this value is greater than or equal to 1.")
         elif stars > 10:
             raise serializers.ValidationError("Ensure this value is less than or equal to 10.")
 

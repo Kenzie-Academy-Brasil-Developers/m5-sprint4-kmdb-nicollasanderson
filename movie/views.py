@@ -2,8 +2,7 @@ from django.shortcuts import get_object_or_404, render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
-from user import serializers
+from rest_framework.pagination import PageNumberPagination
 
 from .serializers import MovieSerializer
 from .models import Movie
@@ -12,16 +11,18 @@ from rest_framework.authentication import TokenAuthentication
 from .permissions import MoviePermission
 # Create your views here.
 
-class MovieView(APIView):
+class MovieView(APIView, PageNumberPagination):
     authentication_classes = [TokenAuthentication]
     permission_classes = [MoviePermission]
 
     def get(self, request):
         movies = Movie.objects.all()
 
-        serializer = MovieSerializer(movies, many=True)
+        result_page = self.paginate_queryset(movies, request, view=self)
 
-        return Response(serializer.data)
+        serializer = MovieSerializer(result_page, many=True)
+
+        return self.get_paginated_response(serializer.data)
 
     def post(self, request):
         serializer = MovieSerializer(data=request.data)
@@ -33,6 +34,9 @@ class MovieView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SingleMovieView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [MoviePermission]
+
     def get(self,request, movie_id):
         try:
             movie = Movie.objects.get(id=movie_id)
