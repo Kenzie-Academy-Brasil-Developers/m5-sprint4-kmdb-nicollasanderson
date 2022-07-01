@@ -1,4 +1,3 @@
-from functools import partial
 from django.shortcuts import get_object_or_404, render
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,12 +8,12 @@ from user import serializers
 from .serializers import MovieSerializer
 from .models import Movie
 
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.authentication import TokenAuthentication
 from .permissions import MoviePermission
 # Create your views here.
 
 class MovieView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [MoviePermission]
 
     def get(self, request):

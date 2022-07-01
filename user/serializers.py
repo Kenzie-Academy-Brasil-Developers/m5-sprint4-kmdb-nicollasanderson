@@ -13,11 +13,10 @@ class UserSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         
-        
         email = User.objects.filter(email=validated_data['email'])
         
         if email:
-            raise Exception('email already exists')
+            raise serializers.ValidationError('email already exists')
 
         validated_data['updated_at'] = timezone.now()
         validated_data['username'] = validated_data['email']
