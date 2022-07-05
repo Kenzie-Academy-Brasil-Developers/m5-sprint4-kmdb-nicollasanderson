@@ -39,7 +39,7 @@ class ReviewView(APIView, PageNumberPagination):
 
         serializer.save(movie=movie, critic=request.user)
 
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class DeleteReviewView(APIView):
     authentication_classes = [TokenAuthentication]

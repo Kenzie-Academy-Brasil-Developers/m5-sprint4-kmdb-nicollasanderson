@@ -48,4 +48,25 @@ class GetOneUserView(APIView):
 
         serializer = UserSerializer(user, many=True)
 
-        return Response(serializer.data)
+        return Response(serializer.data[0])
+
+class LoginView(APIView):
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        verify = serializer.is_valid()
+
+        if not verify:
+            return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+
+        user = authenticate(
+            email=serializer.validated_data['email'],
+            password=serializer.validated_data['password']
+        )
+
+        if user:
+
+            token, _ = Token.objects.get_or_create(user=user)
+
+            return Response({'token': token.key})
+
+        return Response({"detail":"invalid username or password"}, status=status.HTTP_401_UNAUTHORIZED)
